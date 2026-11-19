@@ -1,8 +1,10 @@
 # Skwirlert — Buff & Event Alerts
 
-**Version 0.7.0-beta (beta)** · WoW Forever 1.60.1 · Interface 16001 · Owner: ERitzFoto
+**Version 0.8.0-beta (beta)** · WoW Forever 1.60.1 · Interface 16001 · Owner: ERitzFoto
 
 Skwirlert warns you before buffs or custom timers run out. You choose what to watch, mostly by clicking buffs that are already on you. Each reminder has its own warning time (0–60 s), warning sound, expiration sound and optional chat announcement. Alerts appear in a movable yellow popup.
+
+New in 0.8.0: **Group Sync** (see groupmates' timers when they run Skwirlert too), **Track on each group member** (e.g. your Arcane Intellect on each party member), **custom timers that need no spell ID**, and **Refresh skips short buffs** such as shouts. See the changelog for the full list.
 
 This is a beta. If something goes wrong, type `/skwirlert report` and include the text in your bug report.
 
@@ -25,7 +27,9 @@ Nothing is built in: every character starts with an empty list.
 
 Once added, a buff is always monitored on that profile, whoever casts it on you.
 
-For buffs you put on **someone else** (e.g. Soulstone), or plain timers, click **New** and choose the type.
+For buffs you put on **someone else** (e.g. Soulstone), or plain timers, click **New** and pick from the menu: **Custom timer (no spell)**, **Buff on me**, **Buff I cast on others**, or **From my recent casts**. You never need to look up a spell ID.
+
+Buffing your party (e.g. Arcane Intellect)? Tick **Track on each group member** on that reminder to get a timer for each person you buffed.
 
 ## Minimap button
 
@@ -36,7 +40,7 @@ The squirrel button on the minimap:
 * **Right-click:** Pause Monitoring.
 * **Drag:** move it around the minimap.
 
-Hover for a summary: active reminders, whether monitoring is on, and pause status. Position and visibility are saved per profile. If you hide it, `/skwirlert minimap show` brings it back (`/skwirlert minimap reset` puts it back in its default spot).
+Hover for a summary: active reminders, whether monitoring is on, pause status, and how many groupmates share timers with you (Group Sync). Position and visibility are saved per profile. If you hide it, `/skwirlert minimap show` brings it back (`/skwirlert minimap reset` puts it back in its default spot).
 
 ## Refresh current buffs
 
@@ -201,6 +205,10 @@ Hidden player names are never sent. `/skwirlert chatlog` shows sent, skipped and
 | `/skwirlert debug` | Print debug messages in chat |
 | `/skwirlert unlock` / `lock` / `resetpos` | Move the popup |
 | `/skwirlert reset confirm` | Empty the current profile |
+
+## Upgrading from 0.7.0
+
+Install over the old folder; your profiles, reminders and settings are kept. New settings get their defaults: Group Sync **Share and receive**, frequency **Low**, **Don't send during combat** on; Refresh minimum **5m**; **Track on each group member** off on every reminder. Reminders that Refresh added before (e.g. a short shout) stay in your list; untick or delete them if you don't want them, and Refresh won't add them back.
 
 ## Upgrading from 0.5.0
 

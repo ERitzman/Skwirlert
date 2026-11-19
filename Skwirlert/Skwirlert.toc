@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: Skwirlert
-## Notes: Buff and event expiration alerts with per-reminder sounds, profiles and share codes.
+## Notes: Buff and timer expiration alerts with per-reminder sounds, profiles, share codes, per-member buff tracking and Group Sync.
 ## Author: ERitzFoto
 ## Version: 0.8.0-beta
 ## SavedVariables: SkwirlertDB
