@@ -1,6 +1,6 @@
 # Skwirlert — Buff & Event Alerts
 
-**Version 0.8.0-beta (beta)** · WoW Forever 1.60.1 · Interface 16001 · Owner: ERitzFoto
+**Version 0.8.0-beta (beta)** · WoW Forever 1.60.1 · Interface 16001 · Owner: [ERitzFoto](https://github.com/ERitzman/Skwirlert/edit/main/Skwirlert/)
 
 Skwirlert warns you before buffs or custom timers run out. You choose what to watch, mostly by clicking buffs that are already on you. Each reminder has its own warning time (0–60 s), warning sound, expiration sound and optional chat announcement. Alerts appear in a movable yellow popup.
 
