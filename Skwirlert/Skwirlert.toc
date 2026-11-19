@@ -1,0 +1,43 @@
+## Interface: 16001
+## Title: Skwirlert
+## Notes: Buff and event expiration alerts with per-reminder sounds, profiles and share codes.
+## Author: ERitzFoto
+## Version: 0.8.0-beta
+## SavedVariables: SkwirlertDB
+## IconTexture: Interface\AddOns\Skwirlert\Media\SkwirlertIcon
+
+# ---------------------------------------------------------------------------
+# How this file works (for new addon developers):
+#   * Lines starting with "##" are metadata WoW reads:
+#       Interface      - client version the addon targets (16001 = WoW Forever 1.60.1)
+#       SavedVariables - global table(s) WoW saves to disk on logout / reload
+#       IconTexture    - icon shown in the AddOns list (path without extension;
+#                        Media\SkwirlertIcon.tga, 128x128, 32-bit TGA)
+#   * Lines starting with a single "#" are comments.
+#   * Every other line is a file to load, IN THIS ORDER. Each .lua file
+#     receives the same private namespace table (`local ADDON, ns = ...`), so
+#     a file can use anything defined by the files listed above it.
+# ---------------------------------------------------------------------------
+
+# Foundation: namespace, profiles, saved data, error capture, event dispatch
+Core.lua
+# Safe wrappers around game APIs (secret values, buff lookups)
+Compat.lua
+# Alert sounds, chat announcements, popup box
+Sounds.lua
+Announce.lua
+Popup.lua
+# Timers, cast detection and buff verification (decides WHEN to alert)
+Engine.lua
+# Settings window, "Add from my buffs", share codes, bug reports
+Config.lua
+BuffPicker.lua
+Share.lua
+Diagnostics.lua
+# Pause Monitoring and the minimap button (0.7.0)
+Pause.lua
+MinimapButton.lua
+# Group Sync: share running timers with groupmates who use Skwirlert (0.8.0)
+Sync.lua
+# /skwirlert slash command
+Commands.lua
