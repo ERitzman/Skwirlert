@@ -1,0 +1,8 @@
+# Ignore root markdown files
+README.md export-ignore
+LICENSE export-ignore
+.gitattributes export-ignore
+
+# Ignore specific files inside the Skwirlert subfolder
+Skwirlert/CHANGELOG.md export-ignore
+Skwirlert/CREDITS.md export-ignore
