@@ -8,14 +8,66 @@ New in 0.8.0: **Group Sync** (see groupmates' timers when they run Skwirlert too
 
 This is a beta. If something goes wrong, type `/skwirlert report` and include the text in your bug report.
 
-## Install
+## Installation — Windows and macOS
 
-1. Close WoW completely.
-2. Delete any older `Skwirlert` folder, then unzip so the path is `Interface\AddOns\Skwirlert\Skwirlert.toc`.
-3. Start the client. Restart it fully after installing or replacing sound files.
-4. Type `/skwirlert`.
+Skwirlert is designed for **WoW Forever** and requires no additional addons or libraries.
 
-There are no dependencies.
+### 1. Download and extract
+
+1. Download the Skwirlert ZIP file.
+2. **Windows:** Right-click the ZIP and select **Extract All**. **macOS:** Double-click the ZIP to extract it.
+3. Open the extracted folder. For GitHub's **Code → Download ZIP**, open the `Skwirlert-main` folder.
+4. Find the **`Skwirlert`** folder containing `Skwirlert.toc`. Copy **that folder**, not the entire `Skwirlert-main` folder.
+
+If you downloaded the packaged player release, the `Skwirlert` folder is already at the top level of the extracted ZIP.
+
+### 2. Copy into your AddOns folder
+
+**Close World of Warcraft completely** before installing or updating. Paste the entire `Skwirlert` folder into your WoW Forever `Interface/AddOns` directory.
+
+**Windows example:**
+```text
+C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\
+```
+
+**macOS example:**
+```text
+/Applications/World of Warcraft/_forever_/Interface/AddOns/
+```
+
+### 3. Check the folder layout
+
+```text
+World of Warcraft/
+└── _forever_/
+    └── Interface/
+        └── AddOns/
+            └── Skwirlert/
+                ├── Media/
+                │   └── SkwirlertIcon.tga
+                ├── Sounds/
+                │   ├── Uh Oh.mp3
+                │   └── ...other sound files
+                ├── Core.lua
+                ├── Engine.lua
+                ├── Config.lua
+                ├── ...other addon files
+                └── Skwirlert.toc
+```
+
+**Correct:** `AddOns/Skwirlert/Skwirlert.toc`
+
+**Incorrect:** `AddOns/Skwirlert-main/Skwirlert/Skwirlert.toc` or `AddOns/Skwirlert/Skwirlert/Skwirlert.toc`.
+
+The `Skwirlert.toc` file must be directly inside the installed `Skwirlert` folder.
+
+### 4. Launch and enable
+
+1. Start WoW Forever.
+2. At character selection, open **AddOns** and confirm **Skwirlert** is enabled.
+3. Log in and type `/skwirlert` to open settings.
+
+**Updating an existing installation:** Back up your settings, then replace the old `Skwirlert` addon folder with the new one. Restart WoW fully after updating, particularly if sound files changed.
 
 ## Getting started
 
