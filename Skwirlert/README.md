@@ -4,6 +4,10 @@
 
 Skwirlert warns you before buffs or custom timers run out. You choose what to watch, mostly by clicking buffs that are already on you. Each reminder has its own warning time (0–60 s), warning sound, expiration sound and optional chat announcement. Alerts appear in a movable yellow popup.
 
+![Skwirlert v0.9.3-beta Reminders settings](../media/skwirlert-settings-0.9.3.jpg)
+
+*Screenshot: Skwirlert v0.9.3-beta — Reminders settings.*
+
 New in 0.9.3: **A wider, cleaner settings layout** (740 px), clearer title/profile/tabs, wider fields, and smaller, softer help icons. This is a visual update; reminders and alert behavior are unchanged.
 
 New in 0.9.2: **A loaded confirmation at login** and **newer-version notices** learned from guildmates, groupmates and online friends (remembered across sessions).
