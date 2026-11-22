@@ -56,7 +56,7 @@
 -- The two values WoW passes to every addon file (see header).
 local ADDON, ns = ...
 ns.name = ADDON or "Skwirlert"
-ns.version = "0.8.0-beta"
+ns.version = "0.9.3-beta"
 _G.Skwirlert = ns
 
 local DB_VERSION = 3
@@ -176,6 +176,13 @@ local function emptyProfile()
         -- Refresh / auto-add (0.8.0): skip buffs shorter than minDuration seconds;
         -- ignored = buffs you deleted, so Refresh doesn't add them back.
         refresh = { minDuration = 300, ignored = {} },
+        -- Combat alerts (0.9.0): Aspect warning and the after-combat group check.
+        alerts = {
+            aspect = true, packGroup = true, packOnMe = true, aspectSound = "mechanical-alert",
+            packAnnounce = "off",
+            care = true, curse = true, disease = true, poison = false, magic = false, dead = true,
+            careChannel = "group", careSound = "sci-fi-error-alert", careDelay = 3,
+        },
     }
 end
 ns.EmptyProfile = emptyProfile
@@ -201,6 +208,14 @@ local function normalizeProfile(p)
     local md = tonumber(p.refresh.minDuration) or 300
     p.refresh.minDuration = math.max(0, math.min(86400, math.floor(md)))
     if type(p.refresh.ignored) ~= "table" then p.refresh.ignored = {} end
+    if type(p.alerts) ~= "table" then p.alerts = {} end
+    for k, v in pairs(d.alerts) do
+        if type(p.alerts[k]) ~= type(v) then p.alerts[k] = v end
+    end
+    local validCh = { off = true, say = true, party = true, raid = true, group = true }
+    if not validCh[p.alerts.careChannel] or p.alerts.careChannel == "say" then p.alerts.careChannel = "group" end
+    if not validCh[p.alerts.packAnnounce] or p.alerts.packAnnounce == "say" then p.alerts.packAnnounce = "off" end
+    p.alerts.careDelay = math.max(0, math.min(30, p.alerts.careDelay))
     if type(p.reminders) ~= "table" then p.reminders = {} end
     for i = #p.reminders, 1, -1 do   -- drop corrupted entries
         if type(p.reminders[i]) ~= "table" then table.remove(p.reminders, i) end

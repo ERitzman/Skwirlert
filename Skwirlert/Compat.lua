@@ -313,6 +313,39 @@ function C.UnitByName(name)
     return nil
 end
 
+-- Harmful auras on a unit: { {name, dtype ("Curse"/"Disease"/"Poison"/"Magic"
+-- or nil), expires} }. Unreadable (secret) records are skipped. Out-of-range
+-- units usually report nothing, so an empty list does not prove "no debuffs".
+-- Unconfirmed on Forever: that aura.dispelName is filled (see UNVERIFIED.md).
+function C.ListUnitDebuffs(unit)
+    local out = {}
+    local U = _G.C_UnitAuras
+    if U and U.GetAuraDataByIndex then
+        for i = 1, 40 do
+            local ok, aura = pcall(U.GetAuraDataByIndex, unit, i, "HARMFUL")
+            if not ok then break end
+            if not C.IsSecret(aura) then
+                if aura == nil then break end
+                if type(aura) == "table" then
+                    out[#out + 1] = { name = C.Str(aura.name), dtype = C.Str(aura.dispelName),
+                                      expires = C.Num(aura.expirationTime) }
+                end
+            end
+        end
+        return out
+    end
+    if _G.UnitDebuff then
+        for i = 1, 40 do
+            local ok, name, _, _, dtype, _, expires = pcall(_G.UnitDebuff, unit, i)
+            if not ok or (name == nil and not C.IsSecret(name)) then break end
+            if not C.IsSecret(name) then
+                out[#out + 1] = { name = C.Str(name), dtype = C.Str(dtype), expires = C.Num(expires) }
+            end
+        end
+    end
+    return out
+end
+
 -- Is the unit dead or a ghost? false when unknown.
 function C.IsDead(unit)
     local fn = _G.UnitIsDeadOrGhost
@@ -367,7 +400,7 @@ function C.Probe()
         "issecretvalue", "canaccessvalue", "C_Secrets", "C_Secrets.ShouldSpellAuraBeSecret",
         "C_UnitAuras", "C_UnitAuras.GetPlayerAuraBySpellID", "C_UnitAuras.GetAuraDataByIndex",
         "C_UnitAuras.GetBuffDataByIndex", "UnitBuff", "C_Spell", "C_Spell.GetSpellName",
-        "C_Spell.GetSpellInfo", "GetSpellInfo", "UnitIsDeadOrGhost", "C_Timer", "C_Timer.NewTimer", "C_Timer.After",
+        "C_Spell.GetSpellInfo", "GetSpellInfo", "UnitIsDeadOrGhost", "UnitAffectingCombat", "UnitDebuff", "C_Timer", "C_Timer.NewTimer", "C_Timer.After",
         "PlaySoundFile", "PlaySound", "SOUNDKIT", "InCombatLockdown", "BackdropTemplateMixin",
         "Settings", "Settings.RegisterCanvasLayoutCategory", "InterfaceOptions_AddCategory",
         "CooldownViewerSettings", "C_CooldownViewer",

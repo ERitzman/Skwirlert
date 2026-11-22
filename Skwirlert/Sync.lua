@@ -26,6 +26,14 @@
 --        (a per-member copy, e.g. your Arcane Intellect on Bob, is sent with
 --         recipient "Bob"; the format is unchanged from the first 0.8.0 build)
 --   1^C                                      "I have no running timers / stopped sharing"
+--   1^P^<letters>                            (0.9.0) what I can fix: c=curse d=disease
+--                                            p=poison m=magic r=resurrect (from my spellbook)
+--   1^K^<name/type>,<name/type>...           (0.9.0) "I just announced these after combat"
+--                                            (other Skwirlerts don't repeat them)
+--   1^V^<version>                            (0.9.2) my version; sent once to the GUILD at
+--                                            login (and whispered to online friends), and by a newer
+--                                            client in reply to an older one
+--   Older versions ignore P, K and V (unknown type).
 --   Names have the separators and "|" removed before sending. Everything
 --   received is validated and length/count-limited before use.
 --
@@ -170,6 +178,8 @@ local function flush()
     local msgs = { Sync.PROTOCOL .. "^H^" .. clean(ns.version, 20) }
     if #entries == 0 then msgs[2] = Sync.PROTOCOL .. "^C"
     else for _, m in ipairs(buildMessages(entries)) do msgs[#msgs + 1] = m end end
+    local caps = ns.CombatAlerts and ns.CombatAlerts.Caps() or ""
+    if caps ~= "" then msgs[#msgs + 1] = Sync.PROTOCOL .. "^P^" .. caps end
     for _, m in ipairs(msgs) do
         local ok, why = rawSend(m, channel)
         if not ok and why == "no addon messaging API" then dirty = false; return false end   -- nothing to retry
@@ -235,6 +245,13 @@ function Sync.OnMessage(prefix, text, channel, sender)
     if #text > 255 then return reject("too long") end
     local proto, kind, rest = text:match("^(%d+)%^(%a)%^?(.*)$")
     if proto ~= Sync.PROTOCOL then return reject("unknown protocol") end
+    -- Version notices (Version.lua): "V" from the guild or group. Guild
+    -- messages never create a groupmate entry; nothing else is read from GUILD.
+    channel = C.Str(channel)
+    if kind == "V" or channel == "GUILD" or channel == "WHISPER" then
+        if kind == "V" and ns.Version then ns.Version.OnVersion(sender, rest, channel) end
+        return
+    end
     local peer = Sync.peers[sender]
     if not peer then
         local n = 0; for _ in pairs(Sync.peers) do n = n + 1 end
@@ -245,8 +262,19 @@ function Sync.OnMessage(prefix, text, channel, sender)
     Sync.stats.received = Sync.stats.received + 1
     if kind == "H" then
         peer.version = clean(rest, 20)
+        if ns.Version then ns.Version.OnVersion(sender, rest, channel) end
     elseif kind == "C" then
         peer.entries = {}; incoming[sender] = nil
+    elseif kind == "P" then
+        peer.caps = (rest:gsub("[^cdpmr]", "")):sub(1, 5)
+    elseif kind == "K" then
+        local keys = {}
+        for k in rest:gmatch("[^,]+") do
+            if #keys >= 40 then break end
+            local name, typ = k:match("^([^/]+)/(%a+)$")
+            if name and typ then keys[#keys + 1] = clean(name, 24) .. "/" .. typ end
+        end
+        if ns.CombatAlerts then ns.CombatAlerts.OnClaim(keys) end
     elseif kind == "S" then
         local id, part, parts, body = rest:match("^(%d+)%^(%d+)/(%d+)%^(.*)$")
         part, parts = tonumber(part), tonumber(parts)
@@ -280,6 +308,33 @@ function Sync.Snapshot()
     end
     table.sort(out, function(a, b) return a.player < b.player end)
     return out
+end
+
+-- Groupmates' cure/resurrect abilities as they reported them: { [name] = "cdr" }.
+function Sync.PeerCaps()
+    local out = {}
+    for name, p in pairs(Sync.peers) do out[name] = p.caps or "" end
+    return out
+end
+
+-- After-combat check (CombatAlerts.lua): tell other Skwirlerts what we just
+-- announced, so they don't post it again. Sent at once (combat is over),
+-- only in "Share and receive" mode. Best effort: a failure just means a
+-- groupmate may repeat the message.
+function Sync.SendClaim(keys)
+    if mode() ~= "share" or #keys == 0 then return false end
+    local channel = Sync.Channel()
+    if not channel then return false end
+    local body, n = {}, #Sync.PROTOCOL + 3
+    for _, k in ipairs(keys) do
+        local name, typ = k:match("^(.-)/(%a+)$")
+        local item = clean(name or "", 24) .. "/" .. (typ or "")
+        if n + #item + 1 > Sync.MAX_MSG then break end
+        body[#body + 1] = item; n = n + #item + 1
+    end
+    local ok = rawSend(Sync.PROTOCOL .. "^K^" .. table.concat(body, ","), channel)
+    if ok then Sync.stats.sent = Sync.stats.sent + 1 end
+    return ok
 end
 
 function Sync.PeerCount() local n = 0; for _ in pairs(Sync.peers) do n = n + 1 end; return n end

@@ -449,6 +449,8 @@ local function queueVerify(unit)
     ns.After("Engine", 0.15, function()
         verifyQueued[unit] = nil
         local snap = unit == "player" and C.SnapshotPlayerBuffs() or nil
+        -- the Aspect warning (CombatAlerts.lua) reuses this one scan
+        if snap and ns.CombatAlerts and not C.InCombat() then ns.CombatAlerts.ReadAspects(snap) end
         for _, r in ipairs(ns.db.reminders) do
             if r.enabled then
                 if unit == "player" and r.kind == "self" then

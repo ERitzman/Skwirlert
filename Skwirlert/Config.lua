@@ -95,6 +95,34 @@ local function check(parent, text, x, y, onClick)
     return c
 end
 
+-- Info icon (0.9.1): a small yellow "i" in a circle; hovering shows what
+-- the setting next to it does. Purely a tooltip: clicking does nothing.
+local INFO_ICON = "Interface\\AddOns\\Skwirlert\\Media\\Info"
+W.infos = {}
+local function info(parent, x, y, title, text)
+    local b = CreateFrame("Button", nil, parent)
+    b:SetSize(13, 13)
+    b:SetPoint("TOPLEFT", x + 2, y - 1)        -- centred where the 16 px icon used to sit
+    local t = b:CreateTexture(nil, "ARTWORK")
+    t:SetAllPoints(); t:SetTexture(INFO_ICON)
+    t:SetVertexColor(1, 0.92, 0.7)             -- a paler yellow
+    b:SetAlpha(0.55)                           -- soft until hovered
+    b.icon, b.title, b.text = t, title, text
+    b:SetScript("OnEnter", function(self)
+        local tip = _G.GameTooltip
+        if not tip then return end
+        self:SetAlpha(1)
+        tip:SetOwner(self, "ANCHOR_RIGHT")
+        tip:AddLine(self.title, 1, 0.82, 0)
+        tip:AddLine(self.text, 1, 1, 1, true)
+        tip:Show()
+    end)
+    b:SetScript("OnLeave", function(self) self:SetAlpha(0.55); if _G.GameTooltip then GameTooltip:Hide() end end)
+    W.infos[#W.infos + 1] = b
+    return b
+end
+Config.Info = info
+
 -- "< value >" cycler used instead of dropdowns.
 local function cycler(parent, x, y, width, onStep)
     local f = CreateFrame("Frame", nil, parent)
@@ -229,7 +257,7 @@ Config.SetEnabled = setEnabled
 -- Window -------------------------------------------------------------------
 local function build()
     win = CreateFrame("Frame", "SkwirlertConfig", UIParent, BACKDROP)
-    win:SetSize(660, 610)
+    win:SetSize(740, 610)
     win:SetPoint("CENTER")
     win:SetFrameStrata("DIALOG")
     win:SetClampedToScreen(true)
@@ -258,8 +286,8 @@ local function build()
     label(win, "Skwirlert  |cff999999v" .. ns.version .. "|r", 44, -12, "GameFontNormalLarge")
     local close = CreateFrame("Button", nil, win, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", -2, -2)
-    W.profileLabel = label(win, "", 196, -17, "GameFontHighlightSmall")
-    W.profileLabel:SetWidth(150); W.profileLabel:SetJustifyH("LEFT")
+    W.profileLabel = label(win, "", 240, -17, "GameFontHighlightSmall")
+    W.profileLabel:SetWidth(162); W.profileLabel:SetJustifyH("LEFT")
     if W.profileLabel.SetWordWrap then W.profileLabel:SetWordWrap(false) end
 
     -- Pages + tabs -------------------------------------------------------------
@@ -269,14 +297,17 @@ local function build()
     local ed = CreateFrame("Frame", nil, page)   -- editor: hidden when the profile is empty
     ed:SetAllPoints()
     W.editor = ed
-    W.tabReminders = button(win, "Reminders", 82, 352, -10, function() Config.ShowTab("reminders") end)
-    W.tabProfiles = button(win, "Profiles", 76, 438, -10, function() Config.ShowTab("profiles") end)
-    W.tabGroup = button(win, "Group", 70, 518, -10, function() Config.ShowTab("group") end)
+    W.tabReminders = button(win, "Reminders", 80, 410, -10, function() Config.ShowTab("reminders") end)
+    W.tabProfiles = button(win, "Profiles", 70, 492, -10, function() Config.ShowTab("profiles") end)
+    W.tabGroup = button(win, "Group", 60, 564, -10, function() Config.ShowTab("group") end)
+    W.tabAlerts = button(win, "Alerts", 60, 626, -10, function() Config.ShowTab("alerts") end)
 
 
     -- Reminder list ----------------------------------------------------------
     label(page, "Reminders", 14, -40)
     W.count = label(page, "", 84, -41, "GameFontHighlightSmall")
+    info(page, 214, -38, "Your reminders",
+        "Tick a reminder to monitor it; untick to stop without deleting it.\nGreen check: time read from the buff. Yellow check: estimated (buff data hidden, e.g. in combat). Red X: a custom timer is running.\nHover a row for details; scroll with the mouse wheel.")
     local function scroll(delta)
         local maxOff = math.max(0, #ns.db.reminders - ROWS)
         scrollOffset = math.max(0, math.min(maxOff, scrollOffset + delta))
@@ -375,6 +406,8 @@ local function build()
     W.newBtn = button(page, "New", 64, 12, newBtnY, function()
         if menu:IsShown() then menu:Hide() else menu:Show() end
     end)
+    info(page, 214, newBtnY - 3, "New, Delete, Test",
+        "New: choose Custom timer (no spell needed), Buff on me, Buff I cast on others, or From my recent casts.\nDelete: click twice to confirm. Refresh won't add a deleted buff back.\nTest: shows this reminder's warning popup and sound.")
     W.delete = button(page, "Delete", 64, 80, -58 - ROWS * ROW_H - 14, function(self)
         local r = current()
         if not r then return end
@@ -394,6 +427,8 @@ local function build()
     W.fromBuffs = button(page, "Add from my buffs", 200, 12, -58 - ROWS * ROW_H - 40, function()
         ns.Picker.Toggle(page)
     end)
+    info(page, 214, -58 - ROWS * ROW_H - 43, "Add from my buffs",
+        "Lists the buffs on you right now. Click one to track it: its name, spell ID and real duration are filled in for you.\nTo add all of them at once, use Refresh (Shift+click the minimap button or /skwirlert refresh).")
     button(page, "Test", 64, 148, -58 - ROWS * ROW_H - 14, function()
         local r = current()
         if not r then return end
@@ -404,7 +439,7 @@ local function build()
     -- Editor ----------------------------------------------------------------
     local X, X2 = 228, 360
     local y = -40
-    label(ed, "Name", X, y - 4);            W.name = edit(ed, 260, X2, y, function(t)
+    label(ed, "Name", X, y - 4);            W.name = edit(ed, 320, X2, y, function(t)
         local r = current(); if not r then return end
         t = t:gsub("^%s+", ""):gsub("%s+$", "")
         if t ~= "" then r.name = t end
@@ -416,9 +451,10 @@ local function build()
         end
         changed(r)
     end)
+    info(ed, 712, y - 1, "Name", "The name shown in alerts and in the list. For a buff, typing the spell's name (e.g. Arcane Intellect) also fills in the buff name and ID.")
     y = y - 30
     label(ed, "Type", X, y - 4)
-    W.kind = cycler(ed, X2, y, 266, function(dir)
+    W.kind = cycler(ed, X2, y, 326, function(dir)
         local r = current(); if not r then return end
         local idx = 1
         for i, k in ipairs(KIND_ORDER) do if k == r.kind then idx = i end end
@@ -427,13 +463,15 @@ local function build()
         ns.Engine:Clear(r.id)
         changed(r)
     end)
+    info(ed, 712, y - 1, "Type", "Buff on me: a buff on you, whoever cast it.\nBuff I cast on others: e.g. Soulstone; remembers who got it.\nCustom timer: any countdown, no spell needed (Start, or /skwirlert start <name>).")
     y = y - 30
-    W.idsLabel = label(ed, "Spell ID (optional)", X, y - 4);   W.ids = edit(ed, 260, X2, y, function(t)
+    W.idsLabel = label(ed, "Spell ID (optional)", X, y - 4);   W.ids = edit(ed, 320, X2, y, function(t)
         local r = current(); if not r then return end
         r.spellIDs = parseIDs(t); changed(r)
     end)
+    info(ed, 712, y - 1, "Spell ID (optional)", "Not needed: the buff name is enough, and the ID is learned on your first cast or filled in from the name. Several IDs (ranks) can be separated with commas.")
     y = y - 30
-    W.namesLabel = label(ed, "Buff name", X, y - 4);     W.names = edit(ed, 260, X2, y, function(t)
+    W.namesLabel = label(ed, "Buff name", X, y - 4);     W.names = edit(ed, 320, X2, y, function(t)
         local r = current(); if not r then return end
         r.names = parseNames(t)
         -- Fill in the optional ID when the player only typed a name (0.8.0).
@@ -445,6 +483,7 @@ local function build()
         end
         changed(r)
     end)
+    info(ed, 712, y - 1, "Buff name", "The buff's name exactly as in game (case doesn't matter). For a custom timer, naming a spell here starts the timer automatically when you cast it.")
     y = y - 30
     -- Duration accepts "30s", "10m", "30m30s", "1h", "90" (seconds), "10:00"...
     -- and is stored in seconds (1 second to 24 hours).
@@ -465,6 +504,7 @@ local function build()
         changed(r)
     end)
     W.learned = label(ed, "", X2 + 96, y - 4, "GameFontHighlightSmall")
+    info(ed, 712, y - 1, "Duration", "How long it lasts: 30s, 10m, 30m30s, 1h, a plain number of seconds, or 10:00. For buffs, the real duration is read from the buff when possible and shown next to the box.")
     y = y - 34
     label(ed, "Warn before (0-60s)", X, y - 2)
     W.warnSlider = slider(ed, X2, y, 190, 0, 60, function(v)
@@ -481,6 +521,7 @@ local function build()
     end)
     W.warnEdit:SetNumeric(true)
     W.warnEdit:SetMaxLetters(2)
+    info(ed, 712, y + 1, "Warn before", "How many seconds before the end to warn you (popup, sound and optional chat). 0 = no early warning, only the expiration alert.")
     label(ed, "0 = expiry alert only", X, y - 17, "GameFontDisableSmall")
     y = y - 40
     label(ed, "Warning sound", X, y - 4)
@@ -493,6 +534,7 @@ local function build()
     button(ed, "Play", 46, X2 + 224, y, function()
         local r = current(); if r then ns.Sounds.Play(r.warnSound, true) end
     end)
+    info(ed, 712, y - 1, "Warning sound", "Played with the early warning. Use the arrows to choose (it plays as you switch) or Play to hear it again.")
     y = y - 30
     label(ed, "Expiration sound", X, y - 4)
     W.expireSound = cycler(ed, X2, y, 220, function(dir)
@@ -504,6 +546,7 @@ local function build()
     button(ed, "Play", 46, X2 + 224, y, function()
         local r = current(); if r then ns.Sounds.Play(r.expireSound, true) end
     end)
+    info(ed, 712, y - 1, "Expiration sound", "Played when it runs out (if 'Alert on expiration' is ticked).")
     y = y - 30
     label(ed, "Chat announce", X, y - 4)
     W.announce = cycler(ed, X2, y, 160, function(dir)
@@ -517,6 +560,7 @@ local function build()
         local ok, info = ns.Announce.Send(r.announce, r.name .. " chat test", true)
         if not ok then ns.Print("chat test not sent: " .. tostring(info)) end
     end)
+    info(ed, 712, y - 1, "Chat announce", "Optionally tell others in chat: Say, Party, Raid or Group (auto picks party/raid/instance). Say only works automatically inside instances. 'Test chat' sends a test line.")
     y = y - 28
     W.annApplied = check(ed, "Announce when applied", X, y, function(v)
         local r = current(); if not r then return end
@@ -526,6 +570,7 @@ local function build()
         local r = current(); if not r then return end
         r.announceWarn = v
     end)
+    info(ed, 712, y - 3, "When to announce", "Applied: when you cast it (or start the timer). Warning time: at the same moment as the warning popup.")
     y = y - 32
     W.enabled = check(ed, "Enabled", X, y, function(v)
         local r = current(); if not r then return end
@@ -536,12 +581,14 @@ local function build()
         r.expireAlert = v; changed(r)
     end)
     -- 0.8.0: one timer per group member who has YOUR copy of this buff.
-    W.perMember = check(ed, "Track on each group member", X + 250, y, function(v)
+    W.perMember = check(ed, "Track on each group member", X + 262, y, function(v)
         local r = current(); if not r then return end
         r.perMember = v and r.kind ~= "timer" or false
         changed(r)
         if r.perMember and ns.Engine then ns.Engine:VerifyAll() end
     end)
+    info(ed, 712, y - 3, "Enabled / Alert on expiration / Track on each group member",
+        "Enabled: monitor this reminder (same as the list checkbox).\nAlert on expiration: also alert when it runs out.\nTrack on each group member: for buffs you also cast on groupmates (e.g. Arcane Intellect) - one timer per person who has YOUR copy, with merged alerts.")
     y = y - 30
     W.startBtn = button(ed, "Start timer now", 120, X, y, function()
         local r = current(); if r then ns.Engine:StartManual(r); Config.Refresh() end
@@ -549,19 +596,20 @@ local function build()
     W.stopBtn = button(ed, "Stop", 60, X + 124, y, function()
         local r = current(); if r then ns.Engine:Clear(r.id); Config.Refresh() end
     end)
-    W.status = label(ed, "", X + 192, y - 4, "GameFontHighlightSmall")
+    W.status = label(ed, "", X + 210, y - 4, "GameFontHighlightSmall")
+    info(ed, X + 189, y - 1, "Start / Stop", "Start the countdown by hand (any type), or stop it without an alert. The text shows what's running and how long is left.")
     y = y - 26
     W.hint = label(ed, "", X, y, "GameFontDisableSmall")
-    W.hint:SetWidth(410); W.hint:SetJustifyH("LEFT")
+    W.hint:SetWidth(470); W.hint:SetJustifyH("LEFT")
     y = y - 28
     W.chatHint = label(ed, "Chat warnings go out at the same moment as the popup (uses the warning time above). Say works automatically only inside instances; Raid falls back to Party when you're not in a raid.", X, y, "GameFontDisableSmall")
-    W.chatHint:SetWidth(410); W.chatHint:SetJustifyH("LEFT")
+    W.chatHint:SetWidth(470); W.chatHint:SetJustifyH("LEFT")
 
     -- Global settings -------------------------------------------------------
     local gy = -542
     local line = page:CreateTexture(nil, "ARTWORK")
     line:SetColorTexture(1, 0.82, 0, 0.3)
-    line:SetPoint("TOPLEFT", 12, gy + 8); line:SetSize(636, 1)
+    line:SetPoint("TOPLEFT", 12, gy + 8); line:SetSize(716, 1)
     label(page, "Popup secs", 14, gy - 4)
     W.popupDur = edit(page, 40, 86, gy, function(t)
         local n = tonumber(t)
@@ -571,14 +619,20 @@ local function build()
     W.unlock = check(page, "Unlock popup", 150, gy + 2, function(v) ns.Popup.SetLocked(not v) end)
     W.master = check(page, "Addon enabled", 290, gy + 2, function(v) ns.db.enabled = v end)
     W.diag = check(page, "Diagnostics mode", 420, gy + 2, function(v) ns.Diag.SetEnabled(v) end)
+    -- 0.9.1: show the welcome window at login (same switch as its "Don't show this again").
+    W.welcome = check(page, "Welcome", 590, gy + 2, function(v) ns.Welcome.SetHidden(not v) end)
+    info(page, 712, gy - 1, "Window and popup settings",
+        "Popup secs: how long alert popups stay up. Unlock popup: drag the popup to move it.\nAddon enabled: master switch for all alerts. Diagnostics mode: records an activity log for bug reports.\nWelcome: show the welcome window at login.")
     gy = gy - 30
     button(page, "Test popup", 100, 12, gy, function() ns.Popup.Show("Skwirlert test popup") end)
     button(page, "Test all sounds", 120, 116, gy, function() ns.Sounds.TestAll() end)
     button(page, "Reset popup position", 150, 240, gy, function() ns.Popup.ResetPosition() end)
     W.bugReport = button(page, "Bug report", 100, 396, gy, function() ns.Diag.ShowReport() end)
     -- Refresh only auto-adds buffs at least this long (0.8.0; default 5m).
-    W.refreshMinLabel = label(page, "Refresh adds >=", 502, gy - 4, "GameFontHighlightSmall")
-    W.refreshMin = edit(page, 50, 596, gy, function(t)
+    W.refreshMinLabel = label(page, "Refresh min", 560, gy - 4, "GameFontHighlightSmall")
+    info(page, 712, gy - 1, "Tests, bug report, Refresh min",
+        "Test popup / Test all sounds: check what alerts look and sound like. Reset popup position: put the popup back.\nBug report: a copyable report for when something goes wrong.\nRefresh min: Refresh only adds buffs at least this long (default 5m), so short buffs like shouts don't flood your list.")
+    W.refreshMin = edit(page, 56, 628, gy, function(t)
         local n, err = ns.ParseDuration(t)
         if n then ns.db.refresh.minDuration = math.max(0, math.min(86400, n))
         else ns.Print("|cffff6060refresh minimum not changed:|r " .. tostring(err)) end
@@ -587,6 +641,7 @@ local function build()
 
     Config.BuildProfiles(win)
     Config.BuildGroup(win)
+    Config.BuildAlerts(win)
     win:SetScript("OnShow", function() Config.Refresh() end)
     win:Hide()
 end
@@ -698,6 +753,107 @@ function Config.Refresh()
     W.unlock:SetChecked(not ns.db.popup.locked)
     W.master:SetChecked(ns.db.enabled)
     W.diag:SetChecked(ns.Diag.Enabled())
+    W.welcome:SetChecked(not ns.Welcome.IsHidden())
+    refreshing = false
+end
+
+-- Alerts tab (0.9.0) ---------------------------------------------------------
+-- Aspect warning and the after-combat group check (CombatAlerts.lua).
+local CHANNELS = { "off", "party", "raid", "group" }
+local CHANNEL_LABEL = { off = "Off (popup only)", party = "Party", raid = "Raid", group = "Group (auto)" }
+function Config.BuildAlerts(parent)
+    local A = CreateFrame("Frame", nil, parent)
+    A:SetAllPoints(); A:Hide()
+    W.alertsPage = A
+    local function S() return ns.CombatAlerts.Settings() end
+    label(A, "Combat alerts", 14, -44, "GameFontNormalLarge")
+
+    label(A, "Aspect warning", 14, -76, "GameFontNormal")
+    info(A, 120, -76, "Aspect warning", "Aspect of the Cheetah and Aspect of the Pack daze you when you're hit. Skwirlert warns when a fight starts with one on.\nPack dazes the whole party, so it also warns when a group member enters combat.\nAny class: warns you when a hunter's Pack is on YOU - the hunter doesn't need Skwirlert. One alert per fight.")
+    W.alAspect = check(A, "Hunter: warn when combat starts with Aspect of the Cheetah or Aspect of the Pack on", 12, -94, function(v) S().aspect = v; Config.RefreshAlerts() end)
+    W.alPackGroup = check(A, "Aspect of the Pack: also warn when a group member enters combat", 32, -118, function(v) S().packGroup = v end)
+    W.alPackOnMe = check(A, "Any class: warn me when a hunter's Pack is on me", 32, -142, function(v) S().packOnMe = v end)
+    label(A, "Sound", 36, -172)
+    W.alAspectSound = cycler(A, 150, -168, 220, function(dir)
+        S().aspectSound = ns.Sounds.Next(S().aspectSound, dir); ns.Sounds.Play(S().aspectSound, true); Config.RefreshAlerts()
+    end)
+    button(A, "Play", 46, 374, -168, function() ns.Sounds.Play(S().aspectSound, true) end)
+    button(A, "Test", 60, 424, -168, function()
+        ns.Popup.Show("Aspect of the Pack is on - Bob is in combat! (test)"); ns.Sounds.Play(S().aspectSound, true)
+    end)
+    info(A, 616, -144, "Tell the group (hunters)", "Also post one chat line when your Pack is on and the group pulls, for groupmates who don't run Skwirlert. Off by default to keep chat quiet.")
+    -- Hunter: one chat line per fight for groupmates without Skwirlert.
+    label(A, "Tell the group", 494, -144, "GameFontHighlightSmall")
+    W.alPackAnnounce = cycler(A, 490, -168, 150, function(dir)
+        local idx = 1
+        for i, c in ipairs(CHANNELS) do if c == S().packAnnounce then idx = i end end
+        S().packAnnounce = CHANNELS[((idx - 1 + dir) % #CHANNELS) + 1]; Config.RefreshAlerts()
+    end)
+
+    local line = A:CreateTexture(nil, "ARTWORK")
+    line:SetColorTexture(1, 0.82, 0, 0.3); line:SetPoint("TOPLEFT", 12, -204); line:SetSize(716, 1)
+    label(A, "After combat: group check", 14, -216, "GameFontNormal")
+    info(A, 196, -216, "After-combat group check", "A few seconds after a fight, checks everyone in the group and posts ONE message naming who needs a curse/disease (poison/magic optional) removed or a resurrection.\n'Can help' only lists players whose Skwirlert found a fitting spell in their own spellbook. Only one Skwirlert in the group posts, at most once a minute per person.")
+    local d = label(A, "When combat ends, Skwirlert checks everyone in your group and tells the group who needs a cure or a resurrection, by name. \"Can help\" lists players whose Skwirlert found a fitting spell in their own spellbook. Only one Skwirlert in the group posts.", 14, -234, "GameFontHighlightSmall")
+    d:SetWidth(710); d:SetJustifyH("LEFT")
+    W.alCare = check(A, "Check the group when combat ends", 12, -270, function(v) S().care = v; Config.RefreshAlerts() end)
+    W.alKinds = {}
+    local kinds = { { "curse", "Curse" }, { "disease", "Disease" }, { "poison", "Poison" }, { "magic", "Magic" }, { "dead", "Dead (resurrect)" } }
+    for i, k in ipairs(kinds) do
+        W.alKinds[k[1]] = check(A, k[2], 32 + (i - 1) * 110, -294, function(v) S()[k[1]] = v end)
+    end
+    label(A, "Announce in", 36, -326)
+    W.alChannel = cycler(A, 150, -322, 220, function(dir)
+        local idx = 1
+        for i, c in ipairs(CHANNELS) do if c == S().careChannel then idx = i end end
+        S().careChannel = CHANNELS[((idx - 1 + dir) % #CHANNELS) + 1]; Config.RefreshAlerts()
+    end)
+    info(A, 128, -324, "Announce in", "Where the message goes: Group (auto) picks party, raid or instance chat. Off (popup only) keeps it on your screen. Say isn't offered: it can't be sent automatically outside instances.")
+    label(A, "Say isn't offered: it can't be sent automatically outside instances.", 378, -326, "GameFontDisableSmall")
+    label(A, "Sound", 36, -356)
+    W.alCareSound = cycler(A, 150, -352, 220, function(dir)
+        S().careSound = ns.Sounds.Next(S().careSound, dir); ns.Sounds.Play(S().careSound, true); Config.RefreshAlerts()
+    end)
+    button(A, "Play", 46, 374, -352, function() ns.Sounds.Play(S().careSound, true) end)
+    label(A, "Wait after combat", 36, -386)
+    W.alDelay = edit(A, 40, 150, -382, function(t)
+        local n = tonumber(t)
+        if n then S().careDelay = math.max(0, math.min(30, math.floor(n))) end
+        Config.RefreshAlerts()
+    end)
+    label(A, "seconds (gives healers a moment to cure first)", 196, -386, "GameFontDisableSmall")
+    info(A, 470, -384, "Wait after combat", "How long to wait after the fight before checking (0-30 s), so healers can cure first. A new pull during the wait postpones the check.")
+    button(A, "Check now", 100, 36, -416, function() ns.CombatAlerts.Check(true, false) end)
+    button(A, "Check and announce", 150, 140, -416, function() ns.CombatAlerts.Check(true, true) end)
+    info(A, 296, -419, "Check now", "Check now: run the check and show the result only to you. Check and announce: run it and post it to the group (/skwirlert check announce).")
+    W.alCaps = label(A, "", 36, -452, "GameFontHighlightSmall")
+    W.alNote = label(A, "Aspect of the Pack for group members uses each member's combat state; debuff types come from the game's aura data. Both are still to be confirmed on WoW Forever (see UNVERIFIED.md).", 14, -480, "GameFontDisableSmall")
+    W.alNote:SetWidth(710); W.alNote:SetJustifyH("LEFT")
+    A:SetScript("OnShow", function() Config.RefreshAlerts() end)
+end
+
+function Config.RefreshAlerts()
+    if not (W.alertsPage and W.alertsPage:IsShown()) then return end
+    local s = ns.CombatAlerts.Settings(); if not s then return end
+    refreshing = true
+    W.alAspect:SetChecked(s.aspect)
+    W.alPackGroup:SetChecked(s.packGroup)
+    W.alPackOnMe:SetChecked(s.packOnMe)
+    W.alAspectSound.value:SetText(ns.Sounds.Label(s.aspectSound))
+    W.alPackAnnounce.value:SetText(s.packAnnounce == "off" and "Off" or (CHANNEL_LABEL[s.packAnnounce] or s.packAnnounce))
+    W.alCare:SetChecked(s.care)
+    for k, c in pairs(W.alKinds) do c:SetChecked(s[k]) end
+    W.alChannel.value:SetText(CHANNEL_LABEL[s.careChannel] or s.careChannel)
+    W.alCareSound.value:SetText(ns.Sounds.Label(s.careSound))
+    W.alDelay:SetText(tostring(s.careDelay))
+    local caps = ns.CombatAlerts.ComputeCaps()
+    local names = {}
+    for kind, letter in pairs(ns.CombatAlerts.CAP_LETTER) do
+        if caps:find(letter, 1, true) then names[#names + 1] = ns.CombatAlerts.TYPE_LABEL[kind] end
+    end
+    table.sort(names)
+    W.alCaps:SetText("Your character can fix: " .. (#names > 0 and table.concat(names, ", ") or "nothing on the list (no cure or resurrection spell found)")
+        .. (ns.CombatAlerts.IsHunter() and "   |   Hunter: aspect warnings active" or ""))
     refreshing = false
 end
 
@@ -708,16 +864,19 @@ function Config.ShowTab(tab)
     activeTab = tab
     if not W.page then return end
     if ns.Picker then ns.Picker.Hide() end
-    W.page:Hide(); W.profPage:Hide(); W.groupPage:Hide()
+    W.page:Hide(); W.profPage:Hide(); W.groupPage:Hide(); W.alertsPage:Hide()
     if W.tabProfiles.SetEnabled then
         W.tabReminders:SetEnabled(tab ~= "reminders" and tab ~= nil)
         W.tabProfiles:SetEnabled(tab ~= "profiles")
         W.tabGroup:SetEnabled(tab ~= "group")
+        W.tabAlerts:SetEnabled(tab ~= "alerts")
     end
     if tab == "profiles" then
         W.profPage:Show(); Config.RefreshProfiles()
     elseif tab == "group" then
         W.groupPage:Show(); Config.RefreshGroup()
+    elseif tab == "alerts" then
+        W.alertsPage:Show(); Config.RefreshAlerts()
     else
         W.page:Show(); Config.Refresh()
     end
@@ -733,7 +892,7 @@ function Config.BuildGroup(parent)
     W.groupPage = G
     label(G, "Group sync", 14, -44, "GameFontNormalLarge")
     local d = label(G, "See the running timers of groupmates who also use Skwirlert (e.g. Soulstone, key buffs), and share yours. Updates are sent only when something changes, merged, never on a timer. Players don't see these messages.", 14, -66, "GameFontHighlightSmall")
-    d:SetWidth(630); d:SetJustifyH("LEFT")
+    d:SetWidth(710); d:SetJustifyH("LEFT")
 
     label(G, "Communication", 14, -110)
     W.syncMode = cycler(G, 150, -110, 210, function(dir)
@@ -744,6 +903,7 @@ function Config.BuildGroup(parent)
         ns.Sync.OnSettingsChanged(); Config.RefreshGroup()
     end)
     W.syncModeHint = label(G, "", 370, -114, "GameFontDisableSmall"); W.syncModeHint:SetWidth(280); W.syncModeHint:SetJustifyH("LEFT")
+    info(G, 128, -111, "Communication", "Share and receive: groupmates who use Skwirlert see your running timers, and you see theirs.\nReceive only: see theirs, send nothing.\nOff: send nothing, ignore everything.")
     label(G, "Update frequency", 14, -140)
     W.syncFreq = cycler(G, 150, -140, 210, function(dir)
         local s = ns.Sync.Settings(); if not s then return end
@@ -753,13 +913,15 @@ function Config.BuildGroup(parent)
         ns.Sync.OnSettingsChanged(); Config.RefreshGroup()
     end)
     W.syncFreqHint = label(G, "", 370, -144, "GameFontDisableSmall"); W.syncFreqHint:SetWidth(280); W.syncFreqHint:SetJustifyH("LEFT")
+    info(G, 128, -141, "Update frequency", "The shortest gap between your updates. Updates are only sent when something changes, and changes in between are merged. Low (15 s) is plenty for almost everyone.")
     W.syncNoCombat = check(G, "Don't send during combat (send when combat ends)", 12, -168, function(v)
         local s = ns.Sync.Settings(); if s then s.noCombat = v; ns.Sync.OnSettingsChanged() end
     end)
+    info(G, 340, -170, "Don't send during combat", "Holds your updates until the fight ends, so nothing is sent mid-combat. Recommended.")
     W.syncStatus = label(G, "", 14, -200, "GameFontHighlight")
 
     local list = CreateFrame("Frame", nil, G, BACKDROP)
-    list:SetPoint("TOPLEFT", 12, -220); list:SetSize(636, GROUP_ROWS * 18 + 10)
+    list:SetPoint("TOPLEFT", 12, -220); list:SetSize(716, GROUP_ROWS * 18 + 10)
     if list.SetBackdrop then
         list:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8" }); list:SetBackdropColor(0, 0, 0, 0.4)
     end
@@ -772,6 +934,11 @@ function Config.BuildGroup(parent)
         if fs.SetWordWrap then fs:SetWordWrap(false) end
         W.groupRows[i] = fs
     end
+    -- 0.9.2: login line and update notice (account-wide settings).
+    W.loginMsg = check(G, "Show a \"Skwirlert loaded\" line in chat at login", 12, -514, function(v) ns.sv.loginMessage = v end)
+    info(G, 340, -516, "Loaded line", "One chat line at login saying Skwirlert is loaded and how to open the settings. Applies to all your characters.")
+    W.updateCheck = check(G, "Tell me when a newer Skwirlert is around (guild, group, friends)", 12, -538, function(v) ns.sv.updateCheck = v end)
+    info(G, 400, -540, "Newer version notice", "Addons can't reach the internet, so Skwirlert compares versions with your guild, group and online friends: one tiny hidden message at login (whispered to friends; they never see it), and anyone with a newer version answers once. Once seen, the notice appears instantly at every login until you update. You then get one chat line naming the new version. Off also when Communication is set to Off.")
     G:SetScript("OnShow", function() Config.RefreshGroup() end)
 end
 
@@ -805,6 +972,8 @@ function Config.RefreshGroup()
     W.syncFreq.value:SetText(ns.Sync.FREQ_LABEL[s.freq])
     W.syncFreqHint:SetText(string.format("At most one update every %d s; changes in between are merged.", ns.Sync.FREQ_GAP[s.freq]))
     W.syncNoCombat:SetChecked(s.noCombat)
+    W.loginMsg:SetChecked(ns.sv.loginMessage ~= false)
+    W.updateCheck:SetChecked(ns.sv.updateCheck ~= false)
     local channel = ns.Sync.Channel()
     W.syncStatus:SetText(not channel and "Not in a group." or
         string.format("In %s: %d other player(s) running Skwirlert.", channel == "RAID" and "a raid" or "a group", ns.Sync.PeerCount()))
@@ -825,6 +994,7 @@ function Config.OnProfileChanged()
     if win and win:IsShown() then
         Config.Refresh()
         Config.RefreshProfiles()
+        Config.RefreshAlerts()
     end
 end
 
@@ -855,11 +1025,12 @@ function Config.BuildProfiles(parent)
     W.profPage = P
     label(P, "Profiles", 14, -44, "GameFontNormalLarge")
     local desc = label(P, "Each character gets its own profile, saved automatically on logout. You can use another character's profile, copy it into yours, or start fresh. |cffffd100Default|r is always available and starts empty.", 14, -66, "GameFontHighlightSmall")
-    desc:SetWidth(630); desc:SetJustifyH("LEFT")
+    desc:SetWidth(710); desc:SetJustifyH("LEFT")
     W.profChar = label(P, "", 14, -96, "GameFontHighlight")
     W.profActive = label(P, "", 14, -114, "GameFontHighlight")
 
     label(P, "Existing profiles", 14, -140)
+    info(P, 128, -138, "Profiles", "Each character has its own profile. Click a profile in the list, then use the buttons on the right. Hover a profile to see which characters use it.")
     local list = CreateFrame("Frame", nil, P, BACKDROP)
     list:SetPoint("TOPLEFT", 12, -158)
     list:SetSize(300, PROF_ROWS * ROW_H + 8)
@@ -941,6 +1112,8 @@ function Config.BuildProfiles(parent)
         if ok then W.profNewName:SetText("") end
         Config.RefreshProfiles()
     end)
+    info(P, X + 206, -182, "Use / Copy / Delete", "Use: this character switches to the selected profile (shared with the other characters using it).\nCopy: copies the selected profile's reminders and settings into yours (click twice).\nDelete: removes the selected profile (click twice; not the one in use).")
+    info(P, X + 300, -288, "Create / Rename", "Type a name, then Create for a new empty profile, or Rename to rename the selected profile.")
     W.profReset = button(P, "Reset current profile", 200, X, -318, function(self)
         armed(self, "Reset current profile", function()
             ns.Profiles.Reset()
@@ -954,11 +1127,12 @@ function Config.BuildProfiles(parent)
     -- Share (export / import) ---------------------------------------------------
     local line = P:CreateTexture(nil, "ARTWORK")
     line:SetColorTexture(1, 0.82, 0, 0.3)
-    line:SetPoint("TOPLEFT", 12, -462); line:SetSize(636, 1)
+    line:SetPoint("TOPLEFT", 12, -462); line:SetSize(716, 1)
     label(P, "Share a profile", 14, -472)
+    info(P, 120, -470, "Share a profile", "Export makes a code you can send to a friend or another account (Ctrl+C to copy). To import, paste a code, give it a name and click Import: it becomes a new profile; nothing of yours is replaced.")
     local sh = label(P, "Export makes a code for your current profile: press Ctrl+C and send it (Discord, email; in-game chat is too short). To import, paste a code, name it, and click Import. It becomes a new profile.", 14, -490, "GameFontHighlightSmall")
-    sh:SetWidth(630); sh:SetJustifyH("LEFT")
-    W.shareBox = edit(P, 620, 8, -524, function() end)
+    sh:SetWidth(710); sh:SetJustifyH("LEFT")
+    W.shareBox = edit(P, 700, 8, -524, function() end)
     W.shareBox:SetMaxLetters(0)
     W.shareBox:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
     W.shareExport = button(P, "Export current profile", 170, 12, -552, function()

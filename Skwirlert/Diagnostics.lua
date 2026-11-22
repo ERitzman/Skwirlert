@@ -78,6 +78,24 @@ function Diag.BuildReport()
         if problem then add("SOUND WARNING: ", problem) end
     end
 
+    if ns.Version then
+        add(string.format("Version notice: %s newest=%s loginMessage=%s", tostring(ns.Version.Enabled()),
+            tostring(ns.Version.newest), tostring(ns.sv and ns.sv.loginMessage)))
+    end
+    if ns.Welcome then
+        add(string.format("Welcome: hidden=%s (char=%s, all=%s) lastVersion=%s", tostring(ns.Welcome.IsHidden()),
+            tostring(ns.char and ns.char.welcomeHide), tostring(ns.sv and ns.sv.welcomeHideAll), tostring(ns.char and ns.char.lastVersion)))
+    end
+    -- Combat alerts (0.9.0)
+    if ns.CombatAlerts and ns.db and ns.db.alerts then
+        local a, st = ns.db.alerts, ns.CombatAlerts.aspectState
+        add(string.format("Alerts: aspect=%s packGroup=%s packOnMe=%s packAnnounce=%s | check=%s curse=%s disease=%s poison=%s magic=%s dead=%s channel=%s delay=%s | caps=%s hunter=%s cheetah=%s pack=%s",
+            tostring(a.aspect), tostring(a.packGroup), tostring(a.packOnMe), tostring(a.packAnnounce), tostring(a.care),
+            tostring(a.curse), tostring(a.disease), tostring(a.poison), tostring(a.magic), tostring(a.dead),
+            tostring(a.careChannel), tostring(a.careDelay), ns.CombatAlerts.Caps(), tostring(ns.CombatAlerts.IsHunter()),
+            tostring(st.cheetah), tostring(st.pack)))
+    end
+
     -- Reminder summary (no personal data beyond spell names)
     if ns.db and #ns.db.reminders > 0 then
         add("")

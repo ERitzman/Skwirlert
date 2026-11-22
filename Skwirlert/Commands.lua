@@ -31,6 +31,11 @@ local HELP = {
     "/skwirlert resume - resume monitoring now",
     "/skwirlert minimap [show|hide|reset] - minimap button",
     "/skwirlert group [share|receive|off] - groupmates' timers, or set group sync",
+    "/skwirlert check [announce] - run the after-combat group check now (cures / resurrections)",
+    "/skwirlert aspect - Aspect warning status (Cheetah / Pack)",
+    "/skwirlert welcome - open the welcome window",
+    "/skwirlert tutorial - the short how-it-works tutorial",
+    "/skwirlert version - your version and the newest one seen in your guild/group",
     "/skwirlert buffs - list the buffs on you with spell IDs and durations",
     "/skwirlert casts - your recent successful casts with spell IDs",
     "/skwirlert aura <spell ID or name> - is this buff on you and readable right now?",
@@ -195,6 +200,23 @@ local function handleSlash(msg)
         end
     elseif cmd == "resume" then
         if ns.Pause.IsPaused() then ns.Pause.Resume() else ns.Pause.Resume(true); ns.Print("monitoring is not paused") end
+    elseif cmd == "check" then
+        ns.CombatAlerts.Check(true, rest:lower() == "announce")
+    elseif cmd == "welcome" then
+        ns.Welcome.Show()
+    elseif cmd == "version" then
+        local nv = ns.Version.newest
+        ns.Print(string.format("version %s%s. Update notice: %s.", ns.version,
+            nv and (", newer seen: " .. nv) or ", no newer version seen this session",
+            ns.Version.Enabled() and "on" or "off"))
+    elseif cmd == "tutorial" then
+        ns.Welcome.ShowTutorial()
+    elseif cmd == "aspect" then
+        local CA = ns.CombatAlerts
+        local st, set = CA.aspectState, CA.Settings()
+        ns.Print(string.format("aspect warning: %s; Cheetah on: %s, Pack on: %s%s; hunter: %s",
+            set.aspect and "on" or "off", st.cheetah and "yes" or "no", st.pack and "yes" or "no",
+            st.pack and (st.packMine and " (yours)" or " (another hunter's)") or "", CA.IsHunter() and "yes" or "no"))
     elseif cmd == "group" or cmd == "sync" then
         local arg = rest:lower()
         local s = ns.Sync.Settings()

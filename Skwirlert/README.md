@@ -1,73 +1,40 @@
 # Skwirlert — Buff & Event Alerts
 
-**Version 0.8.0-beta (beta)** · WoW Forever 1.60.1 · Interface 16001 · Owner: [ERitzFoto](https://github.com/ERitzman/Skwirlert/edit/main/Skwirlert/)
+**Version 0.9.3-beta (beta)** · WoW Forever 1.60.1 · Interface 16001 · Owner: ERitzFoto
 
 Skwirlert warns you before buffs or custom timers run out. You choose what to watch, mostly by clicking buffs that are already on you. Each reminder has its own warning time (0–60 s), warning sound, expiration sound and optional chat announcement. Alerts appear in a movable yellow popup.
+
+New in 0.9.0: **Aspect warning** (Aspect of the Cheetah / the Pack when a fight starts, including when a groupmate pulls) and the **after-combat group check** (who needs a Curse, Disease, Poison or Magic removed, and who needs a resurrection, posted once to the group by name). Both are on the new **Alerts** tab and on by default.
 
 New in 0.8.0: **Group Sync** (see groupmates' timers when they run Skwirlert too), **Track on each group member** (e.g. your Arcane Intellect on each party member), **custom timers that need no spell ID**, and **Refresh skips short buffs** such as shouts. See the changelog for the full list.
 
 This is a beta. If something goes wrong, type `/skwirlert report` and include the text in your bug report.
 
-## Installation — Windows and macOS
+## Install
 
-Skwirlert is designed for **WoW Forever** and requires no additional addons or libraries.
+1. Close WoW completely.
+2. Delete any older `Skwirlert` folder, then unzip so the path is `Interface\AddOns\Skwirlert\Skwirlert.toc`.
+3. Start the client. Restart it fully after installing or replacing sound files.
+4. Type `/skwirlert`.
 
-### 1. Download and extract
+There are no dependencies.
 
-1. Download the Skwirlert ZIP file.
-2. **Windows:** Right-click the ZIP and select **Extract All**. **macOS:** Double-click the ZIP to extract it.
-3. Open the extracted folder. For GitHub's **Code → Download ZIP**, open the `Skwirlert-main` folder.
-4. Find the **`Skwirlert`** folder containing `Skwirlert.toc`. Copy **that folder**, not the entire `Skwirlert-main` folder.
+## Loaded message and update notice
 
-If you downloaded the packaged player release, the `Skwirlert` folder is already at the top level of the extracted ZIP.
+* At login, one chat line confirms Skwirlert is loaded and how to open it. Switch it off on the **Group** tab ("Show a Skwirlert loaded line").
+* **Newer version notice:** WoW addons can't reach the internet, so Skwirlert compares versions with other players. At login it sends one small hidden message to your guild and whispers it to your online friends (they never see it; Group Sync already shares versions in parties and raids). If a guildmate, groupmate or friend has a **newer** Skwirlert, one of their clients answers once and you get one chat line: `A newer Skwirlert is available: 1.0.0 (you have 0.9.2-beta)`. It only works if someone you play with already has the newer version. Once seen, it's **remembered**: the notice then appears instantly at every login, on every character (even solo), until you install that version.
+* Turn it off on the **Group** tab ("Tell me when a newer Skwirlert is around"). It's also silent when Group Sync's Communication is **Off**. `/skwirlert version` shows your version and the newest one seen.
 
-### 2. Copy into your AddOns folder
+## Welcome window
 
-**Close World of Warcraft completely** before installing or updating. Paste the entire `Skwirlert` folder into your WoW Forever `Interface/AddOns` directory.
+**First time on a character:** the window opens as a short **tutorial** (five pages: what Skwirlert does, adding your buffs, timers and buffs on others, combat and group alerts, handy controls) with **Back**, **Next** and **Skip tutorial**. It runs by itself only once; reopen it with the window's **Tutorial** button or `/skwirlert tutorial`.
 
-**Windows example:**
-```text
-C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\
-```
+After that, at login a small **Welcome** window opens with your status and buttons: **Refresh my buffs**, **New timer**, **Open settings** and **Tutorial**.
 
-**macOS example:**
-```text
-/Applications/World of Warcraft/_forever_/Interface/AddOns/
-```
-
-### 3. Check the folder layout
-
-```text
-World of Warcraft/
-└── _forever_/
-    └── Interface/
-        └── AddOns/
-            └── Skwirlert/
-                ├── Media/
-                │   └── SkwirlertIcon.tga
-                ├── Sounds/
-                │   ├── Uh Oh.mp3
-                │   └── ...other sound files
-                ├── Core.lua
-                ├── Engine.lua
-                ├── Config.lua
-                ├── ...other addon files
-                └── Skwirlert.toc
-```
-
-**Correct:** `AddOns/Skwirlert/Skwirlert.toc`
-
-**Incorrect:** `AddOns/Skwirlert-main/Skwirlert/Skwirlert.toc` or `AddOns/Skwirlert/Skwirlert/Skwirlert.toc`.
-
-The `Skwirlert.toc` file must be directly inside the installed `Skwirlert` folder.
-
-### 4. Launch and enable
-
-1. Start WoW Forever.
-2. At character selection, open **AddOns** and confirm **Skwirlert** is enabled.
-3. Log in and type `/skwirlert` to open settings.
-
-**Updating an existing installation:** Back up your settings, then replace the old `Skwirlert` addon folder with the new one. Restart WoW fully after updating, particularly if sound files changed.
+* Tick **Don't show this again** and it won't open for that character any more. Also tick **for all my characters** to hide it everywhere.
+* Bring it back with the **Welcome** checkbox at the bottom of the Reminders tab, or open it any time with `/skwirlert welcome`.
+* It only opens at a real login (not after `/reload` or a zone change), and never during combat: it waits for the fight to end.
+* After an update, characters that hid it get one chat line naming the new version instead.
 
 ## Getting started
 
@@ -127,6 +94,10 @@ Paste these into WoW's macro window (`/macro`) to put them on your action bars:
 | `/skwirlert pause` | Pause monitoring (opens the dialog; `/skwirlert pause 30` pauses for 30 minutes right away) |
 | `/skwirlert resume` | Resume monitoring |
 
+## Info icons
+
+Forgot what a setting does? Hover the small, faint yellow **i** next to it (it brightens when you point at it): every main setting on all four tabs (Reminders, Profiles, Group, Alerts) has one with a short explanation.
+
 ## The Reminders tab
 
 **List (left):** up to **100 reminders per profile**, scrollable with the mouse wheel or `^` / `v`.
@@ -173,7 +144,7 @@ For buffs you also cast on groupmates, such as a mage's **Arcane Intellect**. Ti
 * It works even if your groupmates don't run Skwirlert. Only copies **you** cast are counted.
 * Off by default. The first time you cast a tracked buff on a groupmate, Skwirlert prints a one-line tip pointing to the option.
 
-**Bottom row:** popup seconds, unlock popup, addon enabled, **Diagnostics mode**, test popup, test all sounds, reset popup position, **Bug report**.
+**Bottom row:** popup seconds, unlock popup, addon enabled, **Diagnostics mode**, **Welcome** (show the welcome window at login), **Refresh min**, test popup, test all sounds, reset popup position, **Bug report**.
 
 ## Profiles tab
 
@@ -208,6 +179,32 @@ Players in the same party or raid who all run Skwirlert can see each other's **r
 * The tab lists each groupmate's timers live. The minimap tooltip shows how many groupmates share timers.
 * `/skwirlert group` shows the settings and what's shared; `/skwirlert group share | receive | off` changes the mode.
 
+## Alerts tab: combat alerts (0.9.0)
+
+Both alerts need no setup and are on by default for every character.
+
+### Aspect warning
+
+Aspect of the Cheetah and Aspect of the Pack daze you when you're hit. Aspects don't run out, so they aren't countdown reminders; instead Skwirlert warns when a fight starts:
+
+* **Hunter, Cheetah on:** when you enter combat: `Aspect of the Cheetah is on - you'll be dazed when hit!`
+* **Hunter, Pack on:** when you **or any group member** enters combat: `Aspect of the Pack is on - Bob is in combat!` (Pack dazes the whole party).
+* **Any class, Pack on you** (a hunter's Pack shows as a buff on everyone near them): `Aspect of the Pack is on you - Bob is in combat!`, so you know even if you never noticed the buff. This works on **your** Skwirlert alone: the hunter doesn't need to run Skwirlert, and it's on unless you turn it off.
+* **Tell the group** (hunter, off by default): also post one line to Party / Raid / Group, for groupmates who don't run Skwirlert.
+* At most one aspect alert per fight. Own sound (default: mechanical alert) and a Test button.
+
+### After-combat group check
+
+A few seconds after combat ends (3 s by default, so healers can act first), Skwirlert checks everyone in your group:
+
+* **Curse** and **Disease** (on by default), **Poison** and **Magic** (off by default), and anyone **dead**.
+* One popup for you, and one message to the group (default **Group (auto)**), by name:
+  `Bob needs a Curse removed (Curse of Agony). Ann is dead - needs a resurrection. Can help: Curse - Me; Resurrect - Cy.`
+* **"Can help"** lists only players whose Skwirlert found a fitting spell in **their own spellbook** (you, plus groupmates via Group Sync). It never guesses from someone's class. The tab shows what your character can fix.
+* **No spam:** only one Skwirlert in the group posts (the others hear it over Group Sync and stay quiet); each person and problem is announced at most once a minute; debuffs about to wear off are skipped; a new pull during the wait postpones the check until that fight ends; nothing while paused.
+* Solo, you only get a popup (for yourself).
+* **Check now** / **Check and announce** buttons, `/skwirlert check` and `/skwirlert check announce`. Choose **Off (popup only)** to keep it out of chat.
+
 ## Chat announcements
 
 The warning message goes out at the same moment as the popup, so it uses that reminder's warning time.
@@ -236,6 +233,11 @@ Hidden player names are never sent. `/skwirlert chatlog` shows sent, skipped and
 | `/skwirlert refresh min <duration>` | Refresh only adds buffs at least this long (default `5m`; `0` = any) |
 | `/skwirlert refresh forget` | Let Refresh add buffs you deleted before |
 | `/skwirlert group [share / receive / off]` | Group Sync settings and what groupmates share |
+| `/skwirlert check [announce]` | Run the after-combat group check now (locally, or post it) |
+| `/skwirlert aspect` | Aspect warning status |
+| `/skwirlert welcome` | Open the welcome window |
+| `/skwirlert tutorial` | The short how-it-works tutorial |
+| `/skwirlert version` | Your version and the newest one seen in your guild/group |
 | `/skwirlert pause [minutes / group]` | Pause dialog, or pause now (e.g. `pause 30`) or while grouped (`pause group`) |
 | `/skwirlert resume` | Resume monitoring now |
 | `/skwirlert minimap [show / hide / reset]` | Minimap button |
@@ -257,6 +259,18 @@ Hidden player names are never sent. `/skwirlert chatlog` shows sent, skipped and
 | `/skwirlert debug` | Print debug messages in chat |
 | `/skwirlert unlock` / `lock` / `resetpos` | Move the popup |
 | `/skwirlert reset confirm` | Empty the current profile |
+
+## Upgrading from 0.9.1
+
+Install over the old folder; nothing is reset. The "loaded" line and the newer-version notice are on by default (Group tab to turn them off).
+
+## Upgrading from 0.9.0
+
+Install over the old folder; nothing is reset. The welcome window opens at your next login (it also shows what's new); tick **Don't show this again** if you don't want it. Characters that already have reminders skip the tutorial (it's still available from the window or `/skwirlert tutorial`).
+
+## Upgrading from 0.8.0
+
+Install over the old folder; nothing is reset. The Alerts tab's settings are added with their defaults (both alerts on; group check posts to Group (auto); hunters' "Tell the group" off). Groupmates on 0.8.0 still sync timers with you; they just don't take part in the "only one posts" agreement.
 
 ## Upgrading from 0.7.0
 
