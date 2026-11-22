@@ -4,20 +4,78 @@
 
 Skwirlert warns you before buffs or custom timers run out. You choose what to watch, mostly by clicking buffs that are already on you. Each reminder has its own warning time (0–60 s), warning sound, expiration sound and optional chat announcement. Alerts appear in a movable yellow popup.
 
+New in 0.9.3: **A wider, cleaner settings layout** (740 px), clearer title/profile/tabs, wider fields, and smaller, softer help icons. This is a visual update; reminders and alert behavior are unchanged.
+
+New in 0.9.2: **A loaded confirmation at login** and **newer-version notices** learned from guildmates, groupmates and online friends (remembered across sessions).
+
+New in 0.9.1: **Welcome window**, **five-page first-use tutorial**, and **help icons** on the settings tabs.
+
 New in 0.9.0: **Aspect warning** (Aspect of the Cheetah / the Pack when a fight starts, including when a groupmate pulls) and the **after-combat group check** (who needs a Curse, Disease, Poison or Magic removed, and who needs a resurrection, posted once to the group by name). Both are on the new **Alerts** tab and on by default.
 
 New in 0.8.0: **Group Sync** (see groupmates' timers when they run Skwirlert too), **Track on each group member** (e.g. your Arcane Intellect on each party member), **custom timers that need no spell ID**, and **Refresh skips short buffs** such as shouts. See the changelog for the full list.
 
 This is a beta. If something goes wrong, type `/skwirlert report` and include the text in your bug report.
 
-## Install
+## Installation — Windows and macOS
 
-1. Close WoW completely.
-2. Delete any older `Skwirlert` folder, then unzip so the path is `Interface\AddOns\Skwirlert\Skwirlert.toc`.
-3. Start the client. Restart it fully after installing or replacing sound files.
-4. Type `/skwirlert`.
+Skwirlert is designed for **WoW Forever** and requires no additional addons or libraries.
 
-There are no dependencies.
+### 1. Download and extract
+
+1. Download the Skwirlert ZIP file.
+2. **Windows:** Right-click the ZIP and select **Extract All**. **macOS:** Double-click the ZIP to extract it.
+3. Open the extracted folder. For GitHub's **Code → Download ZIP**, open the `Skwirlert-main` folder.
+4. Find the **`Skwirlert`** folder containing `Skwirlert.toc`. Copy **that folder**, not the entire `Skwirlert-main` folder.
+
+If you downloaded the packaged player release, the `Skwirlert` folder is already at the top level of the extracted ZIP.
+
+### 2. Copy into your AddOns folder
+
+**Close World of Warcraft completely** before installing or updating. Paste the entire `Skwirlert` folder into your WoW Forever `Interface/AddOns` directory.
+
+**Windows example:**
+```text
+C:\Program Files (x86)\World of Warcraft\_forever_\Interface\AddOns\
+```
+
+**macOS example:**
+```text
+/Applications/World of Warcraft/_forever_/Interface/AddOns/
+```
+
+### 3. Check the folder layout
+
+```text
+World of Warcraft/
+└── _forever_/
+    └── Interface/
+        └── AddOns/
+            └── Skwirlert/
+                ├── Media/
+                │   └── SkwirlertIcon.tga
+                ├── Sounds/
+                │   ├── Uh Oh.mp3
+                │   └── ...other sound files
+                ├── Core.lua
+                ├── Engine.lua
+                ├── Config.lua
+                ├── ...other addon files
+                └── Skwirlert.toc
+```
+
+**Correct:** `AddOns/Skwirlert/Skwirlert.toc`
+
+**Incorrect:** `AddOns/Skwirlert-main/Skwirlert/Skwirlert.toc` or `AddOns/Skwirlert/Skwirlert/Skwirlert.toc`.
+
+The `Skwirlert.toc` file must be directly inside the installed `Skwirlert` folder.
+
+### 4. Launch and enable
+
+1. Start WoW Forever.
+2. At character selection, open **AddOns** and confirm **Skwirlert** is enabled.
+3. Log in and type `/skwirlert` to open settings.
+
+**Updating an existing installation:** Back up your settings, then replace the old `Skwirlert` addon folder with the new one. Restart WoW fully after updating, particularly if sound files changed.
 
 ## Loaded message and update notice
 
@@ -237,7 +295,7 @@ Hidden player names are never sent. `/skwirlert chatlog` shows sent, skipped and
 | `/skwirlert aspect` | Aspect warning status |
 | `/skwirlert welcome` | Open the welcome window |
 | `/skwirlert tutorial` | The short how-it-works tutorial |
-| `/skwirlert version` | Your version and the newest one seen in your guild/group |
+| `/skwirlert version` | Your version and the newest version seen via guild, group or online friends |
 | `/skwirlert pause [minutes / group]` | Pause dialog, or pause now (e.g. `pause 30`) or while grouped (`pause group`) |
 | `/skwirlert resume` | Resume monitoring now |
 | `/skwirlert minimap [show / hide / reset]` | Minimap button |
@@ -259,6 +317,10 @@ Hidden player names are never sent. `/skwirlert chatlog` shows sent, skipped and
 | `/skwirlert debug` | Print debug messages in chat |
 | `/skwirlert unlock` / `lock` / `resetpos` | Move the popup |
 | `/skwirlert reset confirm` | Empty the current profile |
+
+## Upgrading from 0.9.2
+
+This release updates the settings window layout only: it is wider (740 px), the title, profile and tabs have more room, the form fields and hints are less crowded, and the yellow help icons are smaller and fade until hovered. Existing reminders, profiles, settings and timers are preserved. No alerting behavior changed.
 
 ## Upgrading from 0.9.1
 
@@ -287,6 +349,12 @@ Your existing reminders and settings move into the profile of **the first charac
 ## Sounds
 
 Six alert sounds supplied by ERitzFoto are included (`Sounds/`), plus two built-in WoW sounds and "silent". Sounds play on the Master channel by default (`/skwirlert channel` to change). If a sound file can't be played, Skwirlert plays a Blizzard sound instead and logs it (`/skwirlert soundlog`). After adding or replacing sound files, restart WoW fully.
+
+## Release status and compatibility
+
+**v0.9.3-beta is a testing build**, not a stable 1.0 release. Earlier core reminder/sound features have been exercised in WoW Forever, but newer combat, group, welcome and version-messaging features still need full in-game validation. The supplied mock WoW client test report records **638 passing checks and 0 failures**; mock tests are not a substitute for live validation.
+
+This is an **alert addon**, not a buff-management or auto-rebuff addon. Shaman totem reminders are planned for a later release pending Forever API testing.
 
 ## Credits and licence
 
